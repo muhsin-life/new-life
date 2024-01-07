@@ -13,6 +13,7 @@ import { addressStore } from "./hooks/useStore";
 import { Button } from "./ui/button";
 import { getSession } from "next-auth/react";
 import { useCart } from "./hooks/useCart";
+import { DEFAULT_ADDRESS } from "@/config";
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -87,6 +88,8 @@ const AddressBar = () => {
         } else {
           setCurrentAddress(session?.user.addresses[0]);
         }
+      } else {
+        setCurrentAddress(DEFAULT_ADDRESS);
       }
     }
     checkSession();

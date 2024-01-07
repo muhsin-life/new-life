@@ -18,15 +18,19 @@ import {
   Wallet2,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GoogleMap, useLoadScript } from "@react-google-maps/api";
 import Image from "next/image";
+import { addressStore } from "./hooks/useStore";
+import { useGeoLocation } from "./hooks/useData";
 
 export const AccountDashboard = NiceModal.create(() => {
   const libraries = useMemo(() => ["places"], []);
 
   const modal = useModal();
   const { data: session } = useSession();
+  const { currentAddress, setCurrentAddress } = addressStore();
+
   const addresses = session?.user.addresses ?? [];
 
   interface TabProps {
@@ -45,6 +49,13 @@ export const AccountDashboard = NiceModal.create(() => {
   }
 
   const [tab, setTab] = useState<TabProps["title"]>("Account");
+  const [mapref, setMapRef] = useState<google.maps.Map | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState(currentAddress);
+
+  const { data, refetch } = useGeoLocation(
+    Number(selectedAddress.latitude),
+    Number(selectedAddress.longitude)
+  );
 
   const DASHBOARD_ITEMS: TabProps[] = [
     {
@@ -97,6 +108,27 @@ export const AccountDashboard = NiceModal.create(() => {
       },
     },
   ];
+
+  const handleCenterChanged = () => {
+    if (mapref) {
+      setMapRef(mapref);
+      const center = mapref.getCenter();
+      setSelectedAddress((address) => ({
+        ...address,
+        latitude: center?.lat().toString() as string,
+        longitude: center?.lng().toString() as string,
+      }));
+    }
+  };
+
+  useEffect(() => {
+    refetch().then((res) => console.log(res));
+  }, [selectedAddress.latitude, selectedAddress.longitude]);
+
+  const handleOnLoad = (map: google.maps.Map) => {
+    setMapRef(map);
+  };
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries as any,
@@ -244,18 +276,19 @@ export const AccountDashboard = NiceModal.create(() => {
             {isLoaded && (
               <GoogleMap
                 options={{
-                  disableDefaultUI: true,
                   clickableIcons: false,
                 }}
                 center={{
-                  lat: 7.2905715,
-                  lng: 80.6337262,
+                  lat: Number(selectedAddress.latitude),
+                  lng: Number(selectedAddress.longitude),
                 }}
                 mapContainerStyle={{
                   position: "absolute",
                   inset: 0,
                   borderRadius: "0.5rem",
                 }}
+                onDragEnd={handleCenterChanged}
+                onLoad={handleOnLoad}
                 zoom={20}
               >
                 <div className="absolute m-auto inset-0 w-fit h-fit z-[1]">

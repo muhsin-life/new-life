@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosRequestConfig } from "axios";
 import { useRouter } from "next/router";
 import { Auth } from "@/types/cart";
+import { Maps } from "@/types/maps";
 
 export const useProducts = (type_key: string, slug: string) => {
   const { locale } = useRouter();
@@ -192,5 +193,58 @@ export const useConfig = (locale: locale) => {
         data: Auth;
       };
     },
+  });
+};
+interface Location {
+  city: string;
+  state: string;
+  country: string;
+  area: string;
+  latitude: number;
+  longitude: number;
+  google_address: string;
+}
+export const useGeoLocation = (lat: number, lng: number) => {
+  return useQuery({
+    queryKey: ["get-location"],
+    queryFn: async () => {
+      const { data }: { data: Maps } = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&region=ae,sa&language=en&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+
+      const extractedData: Location = {
+        city: "",
+        state: "",
+        country: "",
+        area: "",
+        latitude: 0,
+        longitude: 0,
+        google_address: "",
+      };
+
+      const addressComponents = data.results[0].address_components;
+
+      for (const component of addressComponents) {
+        for (const type of component.types) {
+          if (type === "locality") {
+            extractedData.city = component.long_name;
+          } else if (type === "administrative_area_level_1") {
+            extractedData.state = component.long_name;
+          } else if (type === "country") {
+            extractedData.country = component.long_name;
+          } else if (type === "sublocality") {
+            extractedData.area = component.long_name;
+          }
+        }
+      }
+
+      extractedData.latitude = lat;
+      extractedData.longitude = lng;
+
+      extractedData.google_address = data.results[0].formatted_address;
+
+      return extractedData;
+    },
+    enabled: false,
   });
 };

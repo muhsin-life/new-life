@@ -1,6 +1,7 @@
 import { Icons } from "@/components/Icons";
 import { Modals } from "@/components/modals/modals";
 import { CountryCode } from "@/types/products";
+import { Address, Type } from "@/types/session";
 
 export const CATGEORY_ITEMS = ["BRANDS", "OFFERS", "HEALTH PACKAGES"];
 
@@ -135,6 +136,32 @@ export const STORE_DATA_INIT = {
     data: [],
   },
 };
+
+export const DEFAULT_ADDRESS: Address = {
+  id: 1,
+  entity_id: 1,
+  name: "",
+  phone: "",
+  longitude: "55.276383",
+  latitude: "25.192622",
+  type: "Home" as Type,
+  country: "United Arab Emirates",
+  state: "Business Bay",
+  city: "Business Bay",
+  area: "",
+  street_address: "",
+  building: "",
+  flat_number: "",
+  suitable_timing: "Morning",
+  created_at: new Date,
+  updated_at: new Date,
+  google_address: "Dubai, United Arab Emirates",
+  additional_info: null,
+  belongs_to: "user",
+  deleted_at: null,
+  is_validated: 0,
+  area_name: null
+}
 
 export const DELIVERY_OPTIONS = [
   {
