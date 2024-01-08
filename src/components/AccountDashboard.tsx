@@ -98,7 +98,9 @@ export const AccountDashboard = NiceModal.create(() => {
 
   const addressForm = useForm<TAddressCredentailsValidator>({
     resolver: zodResolver(AddressCredentialsValidator),
+    mode: "onChange",
   });
+
   function onSubmit(values: TAddressCredentailsValidator) {
     console.log(values);
   }
@@ -189,7 +191,6 @@ export const AccountDashboard = NiceModal.create(() => {
 
   useEffect(() => {
     setLoading(true);
-
     refetchData();
   }, [selectedAddress.latitude, selectedAddress.longitude]);
 
@@ -205,6 +206,9 @@ export const AccountDashboard = NiceModal.create(() => {
       });
     }
   };
+
+  console.log(addressForm.formState.errors);
+  
 
   const handleOnLoad = (map: google.maps.Map) => {
     setMapRef(map);
@@ -489,7 +493,7 @@ export const AccountDashboard = NiceModal.create(() => {
                     </div>
                     <div className="w-full  px-4">
                       <div className="max-w-xl">
-                        <div className="flex flex-wrap -mx-4 ">
+                        <div className=" -mx-4 ">
                           <FormField
                             control={addressForm.control}
                             name="name"
@@ -557,7 +561,7 @@ export const AccountDashboard = NiceModal.create(() => {
                               >
                                 <Select
                                   defaultValue={ADDRESS_TYPES[0].title}
-                                  {...field}
+                                  onValueChange={field.onChange}
                                 >
                                   <SelectTrigger
                                     id="sort_by"
@@ -646,28 +650,40 @@ export const AccountDashboard = NiceModal.create(() => {
                     <div className="w-full  px-4">
                       <div className="max-w-xl">
                         <div className="flex flex-wrap -mx-4 ">
-                          <FormInput
-                            containerProps={{
-                              className: "w-1/2  px-4 mb-6",
-                            }}
-                            label="Flat / Villa"
-                          >
-                            <Input
-                              id={"ss"}
-                              className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            />
-                          </FormInput>
-                          <FormInput
-                            containerProps={{
-                              className: "w-1/2  px-4 mb-6",
-                            }}
-                            label="Building"
-                          >
-                            <Input
-                              id={"ss"}
-                              className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            />
-                          </FormInput>
+                          <FormField
+                            control={addressForm.control}
+                            name="flat_number"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-1/2  px-4 mb-6",
+                                }}
+                                label="Flat / Villa"
+                              >
+                                <Input
+                                  {...field}
+                                  className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                              </FormInput>
+                            )}
+                          />
+                          <FormField
+                            control={addressForm.control}
+                            name="building"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-1/2  px-4 mb-6",
+                                }}
+                                label="Building"
+                              >
+                                <Input
+                                  {...field}
+                                  className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                              </FormInput>
+                            )}
+                          />
                         </div>
                       </div>
                     </div>
@@ -675,30 +691,39 @@ export const AccountDashboard = NiceModal.create(() => {
                     <div className="w-full  px-4">
                       <div className="max-w-xl">
                         <div className="flex flex-wrap -mx-4 px-4">
-                          <FormInput
-                            containerProps={{
-                              className: "w-full  mb-6",
-                            }}
-                            label="Country"
-                          >
-                            <Select>
-                              <SelectTrigger
-                                id="sort_by"
-                                className="h-full shadow-none border-0 focus:ring-0"
+                          <FormField
+                            control={addressForm.control}
+                            name="building"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-full  mb-6",
+                                }}
+                                label="Country"
                               >
-                                <SelectValue
+                                <Select
                                   defaultValue={COUNTRIES[0].title}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {COUNTRIES.map((country) => (
-                                  <SelectItem value={country.title}>
-                                    {country.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormInput>
+                                  onValueChange={field.onChange}
+                                >
+                                  <SelectTrigger
+                                    className="h-full shadow-none border-0 focus:ring-0"
+                                    defaultValue={COUNTRIES[0].title}
+                                  >
+                                    <SelectValue
+                                      defaultValue={COUNTRIES[0].title}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {COUNTRIES.map((country) => (
+                                      <SelectItem value={country.title}>
+                                        {country.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormInput>
+                            )}
+                          />
                         </div>
                       </div>
                     </div>
@@ -720,7 +745,9 @@ export const AccountDashboard = NiceModal.create(() => {
                       </div>
                     </div>
                   </div>
-                  <Button className="w-full mt-auto">SAVE ADDRESS</Button>
+                  <Button className="w-full mt-auto" type="submit">
+                    SAVE ADDRESS
+                  </Button>
                 </form>
               </Form>
             </div>
