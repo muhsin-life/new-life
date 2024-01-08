@@ -153,15 +153,15 @@ export const DEFAULT_ADDRESS: Address = {
   building: "",
   flat_number: "",
   suitable_timing: "Morning",
-  created_at: new Date,
-  updated_at: new Date,
+  created_at: new Date(),
+  updated_at: new Date(),
   google_address: "Dubai, United Arab Emirates",
   additional_info: null,
   belongs_to: "user",
   deleted_at: null,
   is_validated: 0,
-  area_name: null
-}
+  area_name: null,
+};
 
 export const DELIVERY_OPTIONS = [
   {
@@ -171,5 +171,17 @@ export const DELIVERY_OPTIONS = [
   {
     title: "Collect From Store",
     value: "collect_from_store",
+  },
+];
+
+export const ADDRESS_TYPES = [
+  {
+    title: "Home",
+  },
+  {
+    title: "Work",
+  },
+  {
+    title: "Other",
   },
 ];

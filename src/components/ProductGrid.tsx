@@ -102,7 +102,6 @@ export const ProductGrid = ({
     }
   };
 
-  console.log(map.length);
 
   return (
     <section

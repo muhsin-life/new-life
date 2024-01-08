@@ -38,8 +38,8 @@ export interface UserObject {
 }
 
 export interface Address {
-  id: number;
-  entity_id: number;
+  id?: number;
+  entity_id?: number;
   name: string;
   phone: string;
   longitude: string;
@@ -58,9 +58,9 @@ export interface Address {
   google_address: string;
   additional_info: null | string;
   belongs_to: string;
-  deleted_at: null;
+  deleted_at: Date | null;
   is_validated: number;
-  area_name: null;
+  area_name: null | string;
 }
 
 export enum Type {

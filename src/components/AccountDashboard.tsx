@@ -1,7 +1,8 @@
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import {
+  ChevronLeft,
   ClipboardList,
   Edit,
   Gem,
@@ -9,20 +10,52 @@ import {
   Heart,
   LucideIcon,
   MapPin,
+  Navigation,
   Package2,
   Phone,
   PlusCircle,
   ScrollText,
+  Search,
   Trash2,
   Undo2,
   Wallet2,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useMemo, useState } from "react";
-import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { Autocomplete, GoogleMap, useLoadScript } from "@react-google-maps/api";
 import Image from "next/image";
 import { addressStore } from "./hooks/useStore";
 import { useGeoLocation } from "./hooks/useData";
+import { Input } from "./ui/input";
+import { useDebouncedCallback } from "use-debounce";
+import { Skeleton } from "./ui/skeleton";
+import { cn } from "@/lib/utils";
+import { Label } from "./ui/label";
+import { FormInput } from "./ui/form-input";
+import { Icons } from "./Icons";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { ADDRESS_TYPES, COUNTRIES, SORT_BY_ITEMS } from "@/config";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AddressCredentialsValidator,
+  TAddressCredentailsValidator,
+} from "@/lib/validators/address";
 
 export const AccountDashboard = NiceModal.create(() => {
   const libraries = useMemo(() => ["places"], []);
@@ -43,7 +76,8 @@ export const AccountDashboard = NiceModal.create(() => {
       | "Appointments"
       | "Account"
       | "Select Location"
-      | "Contact Us";
+      | "Contact Us"
+      | "Address Form";
     icon?: LucideIcon;
     onClick?: () => void;
   }
@@ -51,11 +85,23 @@ export const AccountDashboard = NiceModal.create(() => {
   const [tab, setTab] = useState<TabProps["title"]>("Account");
   const [mapref, setMapRef] = useState<google.maps.Map | null>(null);
   const [selectedAddress, setSelectedAddress] = useState(currentAddress);
+  const [placeData, setPlaceData] =
+    useState<google.maps.places.Autocomplete | null>(null);
 
-  const { data, refetch } = useGeoLocation(
+  const [loading, setLoading] = useState(false);
+  const [currentUserLocation, setCurrentUserLocation] = useState(false);
+
+  const { refetch } = useGeoLocation(
     Number(selectedAddress.latitude),
     Number(selectedAddress.longitude)
   );
+
+  const addressForm = useForm<TAddressCredentailsValidator>({
+    resolver: zodResolver(AddressCredentialsValidator),
+  });
+  function onSubmit(values: TAddressCredentailsValidator) {
+    console.log(values);
+  }
 
   const DASHBOARD_ITEMS: TabProps[] = [
     {
@@ -63,6 +109,13 @@ export const AccountDashboard = NiceModal.create(() => {
       icon: MapPin,
       onClick: () => {
         setTab("Addresses");
+      },
+    },
+    {
+      title: "Address Form",
+      icon: MapPin,
+      onClick: () => {
+        setTab("Address Form");
       },
     },
     {
@@ -105,11 +158,14 @@ export const AccountDashboard = NiceModal.create(() => {
       icon: Phone,
       onClick: () => {
         setTab("Contact Us");
+        signOut();
       },
     },
   ];
 
   const handleCenterChanged = () => {
+    setCurrentUserLocation(false);
+
     if (mapref) {
       setMapRef(mapref);
       const center = mapref.getCenter();
@@ -121,12 +177,38 @@ export const AccountDashboard = NiceModal.create(() => {
     }
   };
 
+  const refetchData = useDebouncedCallback(() => {
+    refetch().then((res) => {
+      setSelectedAddress((address) => ({
+        ...address,
+        google_address: res.data?.google_address as string,
+      }));
+      setLoading(false);
+    });
+  }, 1000);
+
   useEffect(() => {
-    refetch().then((res) => console.log(res));
+    setLoading(true);
+
+    refetchData();
   }, [selectedAddress.latitude, selectedAddress.longitude]);
+
+  const detectUserLocation = () => {
+    setCurrentUserLocation(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setSelectedAddress((address) => ({
+          ...address,
+          latitude: position.coords.latitude.toString() as string,
+          longitude: position.coords.longitude.toString() as string,
+        }));
+      });
+    }
+  };
 
   const handleOnLoad = (map: google.maps.Map) => {
     setMapRef(map);
+    detectUserLocation();
   };
 
   const { isLoaded } = useLoadScript({
@@ -273,10 +355,51 @@ export const AccountDashboard = NiceModal.create(() => {
         )}
         {tab === "Select Location" && (
           <div className="relative flex flex-col flex-1 rounded-lg">
+            <div className="bg-white p-3  rounded-t-lg border-b border-muted mb-auto z-30">
+              <Autocomplete
+                restrictions={{
+                  country: ["ae", "sa"],
+                }}
+                className="w-full flex items-center gap-3  "
+                onLoad={(place) => {
+                  setPlaceData(place);
+                }}
+                onPlaceChanged={() => {
+                  setCurrentUserLocation(false);
+
+                  if (mapref) {
+                    setSelectedAddress((address) => ({
+                      ...address,
+                      latitude: placeData
+                        ?.getPlace()
+                        .geometry?.location?.lat()
+                        .toString() as string,
+                      longitude: placeData
+                        ?.getPlace()
+                        .geometry?.location?.lng()
+                        .toString() as string,
+                    }));
+                  }
+                }}
+              >
+                <>
+                  <ChevronLeft className="w-5 h-5 flex-shrink-0" />
+                  <div className="relative w-full flex items-center">
+                    <Search className="absolute w-5 h-5 ms-3" />
+                    <Input
+                      placeholder="Search for your Location..."
+                      className="w-full ps-10 rounded-lg"
+                    />
+                  </div>
+                </>
+              </Autocomplete>
+            </div>
+
             {isLoaded && (
               <GoogleMap
                 options={{
                   clickableIcons: false,
+                  disableDefaultUI: true,
                 }}
                 center={{
                   lat: Number(selectedAddress.latitude),
@@ -309,7 +432,299 @@ export const AccountDashboard = NiceModal.create(() => {
                 </div>
               </GoogleMap>
             )}
+            <button
+              className="z-10 absolute right-5 bottom-56  bg-white shadow p-4 rounded-full"
+              onClick={() => detectUserLocation()}
+            >
+              <Navigation
+                className={cn(`w-5 h-5 m-auto text-blue-500 `, {
+                  "fill-blue-500": currentUserLocation,
+                })}
+              />
+            </button>
+            <div className="bg-white p-3 w-full z-30 mt-auto rounded-b-lg   flex flex-col border-t border-muted">
+              <div className=" bg-muted rounded-xl h-2 w-8 mx-auto" />
+              <div className="gap-2.5 flex flex-col flex-1 py-4">
+                <p className="text-muted-foreground text-sm">
+                  Delivery Location
+                </p>
+                <div className="flex gap-3 items-center">
+                  <div className="bg-muted p-2 rounded-full">
+                    <Navigation
+                      className={cn("fill-blue-500 text-blue-500 w-4 h-4")}
+                    />
+                  </div>
+                  {!loading ? (
+                    <h6 className="text-black font-medium line-clamp-3">
+                      {selectedAddress.google_address}
+                    </h6>
+                  ) : (
+                    <div className="flex flex-col w-full gap-2.5">
+                      <Skeleton className="w-full h-4 rounded-full" />
+                      <Skeleton className="w-3/4 h-4 rounded-full" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                className="w-full bg-blue-500 rounded-lg"
+                onClick={() => setTab("Address Form")}
+              >
+                Deliver Here
+              </Button>
+            </div>
           </div>
+        )}
+
+        {tab === "Address Form" && (
+          <>
+            <div className="flex flex-col flex-1 overflow-x-hidden ">
+              <Form {...addressForm}>
+                <form onSubmit={addressForm.handleSubmit(onSubmit)}>
+                  <div className="flex flex-wrap items-start bg-white py-5  mb-8 rounded-lg border border-muted ">
+                    <div className="w-full  px-4 mb-6 ">
+                      <span className="block  text-lg font-semibold text-black">
+                        Personal Details
+                      </span>
+                    </div>
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 ">
+                          <FormField
+                            control={addressForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormInput
+                                  containerProps={{
+                                    className: "w-full  px-4 mb-5",
+                                  }}
+                                  label="Full Name"
+                                >
+                                  <Input
+                                    id={"ss"}
+                                    {...field}
+                                    className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  />
+                                </FormInput>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={addressForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <div className=" flex gap-1 w-full  px-4 ">
+                                <Button
+                                  variant={"outline"}
+                                  className="gap-1.5 flex items-center h-12"
+                                >
+                                  <Icons.aeFlag className="w-6 h-6 rounded-lg" />
+                                  <p className="text-sm font-semibold"> +971</p>
+                                </Button>
+                                <Input
+                                  id="phone"
+                                  placeholder="XXX-XXX-XXX"
+                                  autoCorrect="off"
+                                  {...field}
+                                  className="focus-visible:ring-0 h-12 focus-visible:ring-offset-0"
+                                />
+                              </div>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-start bg-white py-5   mb-8 rounded-lg border border-muted ">
+                    <div className="w-full  px-4 mb-6 ">
+                      <span className="block  text-lg font-semibold text-black">
+                        Address Details
+                      </span>
+                    </div>
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <FormField
+                          control={addressForm.control}
+                          name="type"
+                          render={({ field }) => (
+                            <div className="flex flex-wrap -mx-4 px-4 ">
+                              <FormInput
+                                containerProps={{
+                                  className: "w-full mb-6 ",
+                                }}
+                                label="Type"
+                              >
+                                <Select
+                                  defaultValue={ADDRESS_TYPES[0].title}
+                                  {...field}
+                                >
+                                  <SelectTrigger
+                                    id="sort_by"
+                                    className="h-full shadow-none border-0 focus:ring-0"
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {ADDRESS_TYPES.map((type) => (
+                                      <SelectItem value={type.title}>
+                                        {type.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormInput>
+                            </div>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 ">
+                          <FormField
+                            control={addressForm.control}
+                            name="state"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-1/2  px-4 mb-6",
+                                }}
+                                label="Emirates"
+                              >
+                                <Input
+                                  {...field}
+                                  className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                              </FormInput>
+                            )}
+                          />
+                          <FormField
+                            control={addressForm.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-1/2  px-4 mb-6",
+                                }}
+                                label="City"
+                              >
+                                <Input
+                                  {...field}
+                                  className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                              </FormInput>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 ">
+                          <FormField
+                            control={addressForm.control}
+                            name="street_address"
+                            render={({ field }) => (
+                              <FormInput
+                                containerProps={{
+                                  className: "w-full px-4 mb-6",
+                                }}
+                                label="Street Address"
+                              >
+                                <Input
+                                  {...field}
+                                  className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                              </FormInput>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 ">
+                          <FormInput
+                            containerProps={{
+                              className: "w-1/2  px-4 mb-6",
+                            }}
+                            label="Flat / Villa"
+                          >
+                            <Input
+                              id={"ss"}
+                              className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </FormInput>
+                          <FormInput
+                            containerProps={{
+                              className: "w-1/2  px-4 mb-6",
+                            }}
+                            label="Building"
+                          >
+                            <Input
+                              id={"ss"}
+                              className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </FormInput>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 px-4">
+                          <FormInput
+                            containerProps={{
+                              className: "w-full  mb-6",
+                            }}
+                            label="Country"
+                          >
+                            <Select>
+                              <SelectTrigger
+                                id="sort_by"
+                                className="h-full shadow-none border-0 focus:ring-0"
+                              >
+                                <SelectValue
+                                  defaultValue={COUNTRIES[0].title}
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {COUNTRIES.map((country) => (
+                                  <SelectItem value={country.title}>
+                                    {country.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormInput>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full  px-4">
+                      <div className="max-w-xl">
+                        <div className="flex flex-wrap -mx-4 ">
+                          <FormInput
+                            containerProps={{
+                              className: "w-full px-4 ",
+                            }}
+                            label="Additional Information"
+                          >
+                            <Input
+                              id={"ss"}
+                              className="block w-full outline-none bg-transparent  placeholder-muted-foreground font-semibold h-full  border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />{" "}
+                          </FormInput>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-auto">SAVE ADDRESS</Button>
+                </form>
+              </Form>
+            </div>
+          </>
         )}
       </SheetContent>
     </Sheet>
