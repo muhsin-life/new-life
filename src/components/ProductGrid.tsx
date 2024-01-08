@@ -102,6 +102,8 @@ export const ProductGrid = ({
     }
   };
 
+  console.log(map.length);
+
   return (
     <section
       className={cn(
@@ -149,7 +151,7 @@ export const ProductGrid = ({
                 swiper?.slideNext();
               }}
               className={cn(activeStyles, "right-1 transition", {
-                [inactiveStyles]: slideConfig.isEnd,
+                [inactiveStyles]: !slideConfig.isEnd,
                 "hover:bg-primary-300 text-white opacity-100":
                   !slideConfig.isEnd,
               })}
@@ -187,7 +189,7 @@ export const ProductGrid = ({
                 slidesPerView={2.1}
                 breakpoints={{
                   991: {
-                    slidesPerView: 6,
+                    slidesPerView: 5.5,
                   },
                   767: {
                     slidesPerView: 4,
