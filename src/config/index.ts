@@ -137,9 +137,9 @@ export const STORE_DATA_INIT = {
   },
 };
 
+const currentDate = new Date()
+
 export const DEFAULT_ADDRESS: Address = {
-  id: 1,
-  entity_id: 1,
   name: "",
   phone: "",
   longitude: "55.276383",
@@ -153,10 +153,10 @@ export const DEFAULT_ADDRESS: Address = {
   building: "",
   flat_number: "",
   suitable_timing: "Morning",
-  created_at: new Date(),
-  updated_at: new Date(),
+  created_at: currentDate.toISOString(),
+  updated_at: currentDate.toISOString(),
   google_address: "Dubai, United Arab Emirates",
-  additional_info: null,
+  additional_info: "",
   belongs_to: "user",
   deleted_at: null,
   is_validated: 0,

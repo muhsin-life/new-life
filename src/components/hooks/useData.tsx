@@ -11,11 +11,13 @@ import { PageProps } from "@/types/page";
 import { SingleProductProps } from "@/types/product";
 import { ProductProps } from "@/types/products";
 import { SearchSuggestionProps } from "@/types/searchSuggestions";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios, { AxiosRequestConfig } from "axios";
 import { useRouter } from "next/router";
 import { Auth } from "@/types/cart";
 import { Maps } from "@/types/maps";
+import { Address } from "@/types/session";
+import { useSession } from "next-auth/react";
 
 export const useProducts = (type_key: string, slug: string) => {
   const { locale } = useRouter();
@@ -200,8 +202,6 @@ interface Location {
   state: string;
   country: string;
   area: string;
-  latitude: number;
-  longitude: number;
   google_address: string;
 }
 export const useGeoLocation = (lat: number, lng: number) => {
@@ -217,8 +217,6 @@ export const useGeoLocation = (lat: number, lng: number) => {
         state: "",
         country: "",
         area: "",
-        latitude: 0,
-        longitude: 0,
         google_address: "",
       };
 
@@ -238,12 +236,61 @@ export const useGeoLocation = (lat: number, lng: number) => {
         }
       }
 
-      extractedData.latitude = lat;
-      extractedData.longitude = lng;
-
       extractedData.google_address = data.results[0].formatted_address;
 
       return extractedData;
+    },
+    enabled: false,
+  });
+};
+
+export interface TAddress {
+  data: {
+    address: Address;
+  };
+  message: string;
+  success: boolean;
+}
+
+export const saveAddress = () => {
+  const { data: session } = useSession();
+  return useMutation({
+    mutationFn: async (formData: Address) => {
+      const { data } = await axios.post(
+        `https://${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/user/save-address`,
+        JSON.stringify(formData),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return data as TAddress;
+    },
+  });
+};
+
+export const deleteAddress = (addressId: number) => {
+  const { data: session } = useSession();
+  return useQuery({
+    queryKey: ["delete-address", addressId],
+    queryFn: async () => {
+      const { data } = await axios.post(
+        `https://${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/user/delete-address`,
+        JSON.stringify({
+          address_id: addressId,
+        }),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return data as { success: boolean; message: string; data: null };
     },
     enabled: false,
   });

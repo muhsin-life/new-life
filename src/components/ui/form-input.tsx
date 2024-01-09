@@ -3,7 +3,7 @@ import { Input } from "./input";
 import { Label } from "./label";
 
 export interface FormProps extends React.InputHTMLAttributes<HTMLLabelElement> {
-  containerProps: React.InputHTMLAttributes<HTMLDivElement>;
+  containerProps?: React.InputHTMLAttributes<HTMLDivElement>;
   label: string;
   children: ReactNode;
 }

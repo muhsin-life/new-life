@@ -53,8 +53,8 @@ export interface Address {
   building: string;
   flat_number: string;
   suitable_timing: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
   google_address: string;
   additional_info: null | string;
   belongs_to: string;

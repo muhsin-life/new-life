@@ -1,25 +1,8 @@
 import * as React from "react";
 import { useMediaQuery } from "./hooks/use-media-query";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import NiceModal, { useModal } from "@ebay/nice-modal-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useModal } from "@ebay/nice-modal-react";
 
 export interface DialogProps {
   open: boolean;
