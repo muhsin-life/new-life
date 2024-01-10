@@ -1,4 +1,4 @@
-import { PricePrice } from "./products";
+import { PriceElement, PricePrice } from "./products";
 
 export interface SearchSuggestionProps {
     results: SearchResult[];
@@ -306,11 +306,6 @@ export interface Option {
     order: number;
 }
 
-export interface PriceElement {
-    country_code: CountryCode;
-    currency: Currency;
-    price: PricePrice;
-}
 
 export enum CountryCode {
     AE = "ae",

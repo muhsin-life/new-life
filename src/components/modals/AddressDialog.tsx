@@ -36,7 +36,7 @@ export const AddressDeleteConfirmationModal = NiceModal.create(
           </p>
         </div>
         <div className="flex items-center justify-between mt-5">
-          <div></div>
+          <div />
           <div className="flex items-center gap-2 ">
             <Button variant={"outline"} onClick={modal.hide}>
               Cancel

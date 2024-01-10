@@ -228,7 +228,7 @@ export interface ProductCollection {
 
 export interface ProductImages {
   featured_image: string;
-  other_images: any[];
+  other_images?: any[];
   gallery_images?: GalleryImage[];
 }
 

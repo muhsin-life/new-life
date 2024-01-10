@@ -1,4 +1,4 @@
-import { CountryCode, PriceElement } from "./products";
+import { CountryCode, PriceElement, Product } from "./products";
 
 export interface Store {
   user: User;
@@ -10,7 +10,7 @@ export interface Store {
   clinic: Clinic;
   compare: Compare;
   demo: Demo;
-  wishlist: Compare;
+  wishlist: WishList;
   i18n: I18N;
   auth: Auth;
 }
@@ -469,7 +469,7 @@ export interface CartBottomAlert {
 
 export interface ShipmentData {
   store_code: string;
-  products: Product[];
+  products: ShipmentProduct[];
   available_slots: Slot[];
   selected_slot: Slot;
 }
@@ -499,7 +499,7 @@ export interface Slot {
   self_pickup_label: null;
 }
 
-export interface Product {
+export interface ShipmentProduct {
   id: string;
   title: string;
   slug: string;
@@ -519,6 +519,10 @@ export interface Clinic {
 
 export interface Compare {
   data: any[];
+}
+
+export interface WishList{
+  data: Product[]
 }
 
 export interface Demo {

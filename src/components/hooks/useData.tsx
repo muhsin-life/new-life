@@ -18,6 +18,7 @@ import { Auth } from "@/types/cart";
 import { Maps } from "@/types/maps";
 import { Address } from "@/types/session";
 import { useSession } from "next-auth/react";
+import { OrderRes } from "@/types/orders";
 
 export const useProducts = (type_key: string, slug: string) => {
   const { locale } = useRouter();
@@ -293,5 +294,24 @@ export const deleteAddress = (addressId: number) => {
       return data as { success: boolean; message: string; data: null };
     },
     enabled: false,
+  });
+};
+
+export const getOrderDetails = () => {
+  const { data: session } = useSession();
+
+  return useQuery({
+    queryKey: ["get-order-details"],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `https://${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/orders/v3/list?lang=ae-en`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.token}`,
+          },
+        }
+      );
+      return data as OrderRes;
+    },
   });
 };

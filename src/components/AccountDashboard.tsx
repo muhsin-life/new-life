@@ -2,6 +2,7 @@ import { signOut, useSession } from "next-auth/react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import {
+  ArrowUpCircle,
   ChevronLeft,
   ClipboardList,
   Edit,
@@ -12,6 +13,7 @@ import {
   MapPin,
   Package2,
   Phone,
+  PhoneIcon,
   PlusCircle,
   PlusIcon,
   ScrollText,
@@ -31,7 +33,14 @@ import { TAddressDeleteConfirmationModal } from "./modals/AddressDialog";
 import { Input } from "./ui/input";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
+import { useLocale } from "./hooks/useLocale";
+import ProductRowListing from "./product/ProductRowListing";
+import { useCart } from "./hooks/useCart";
+import { TabsContent } from "@radix-ui/react-tabs";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { ChatBubbleIcon } from "@radix-ui/react-icons";
+import { OrdersListing } from "./OrderListing";
 
 export interface TabProps {
   title:
@@ -44,19 +53,48 @@ export interface TabProps {
     | "Account"
     | "Select Location"
     | "Contact Us"
+    | "Orders"
+    | "Vouchers"
+    | "Rewards"
     | "Address Form";
-  icon?: LucideIcon;
+  icon: LucideIcon;
   onClick?: () => void;
 }
 export const AccountDashboard = NiceModal.create(() => {
   const modal = useModal();
   const { data: session } = useSession();
+  const { store } = useCart();
   const { currentAddress, setCurrentAddress } = addressStore();
+  const { SELECTED_COUNTRY_DETAILS } = useLocale();
 
   const addresses = session?.user.addresses ?? [];
 
   const [tab, setTab] = useState<TabProps["title"][]>(["Account"]);
   const [selectedAddress, setSelectedAddress] = useState(currentAddress);
+
+  const MAIN_DASHBOARD_ITEMS: TabProps[] = [
+    {
+      title: "Orders",
+      icon: ScrollText,
+      onClick: () => {
+        setTab((tab) => [...tab, "Orders"]);
+      },
+    },
+    {
+      title: "Vouchers",
+      icon: Gift,
+      onClick: () => {
+        setTab((tab) => [...tab, "Vouchers"]);
+      },
+    },
+    {
+      title: "Rewards",
+      icon: Gem,
+      onClick: () => {
+        setTab((tab) => [...tab, "Rewards"]);
+      },
+    },
+  ];
 
   const DASHBOARD_ITEMS: TabProps[] = [
     {
@@ -107,12 +145,14 @@ export const AccountDashboard = NiceModal.create(() => {
       icon: Phone,
       onClick: () => {
         setTab((tab) => [...tab, "Contact Us"]);
-        signOut();
+        // signOut();
       },
     },
   ];
 
   const currentTab = tab[tab.length - 1];
+
+  const wishListItems = store?.wishlist?.data ?? [];
 
   return (
     <Sheet open={modal.visible} onOpenChange={modal.hide}>
@@ -156,41 +196,22 @@ export const AccountDashboard = NiceModal.create(() => {
                 </h4>
               </div>
               <div className="flex items-center gap-10 overflow-x-auto mt-3">
-                <div className="flex flex-col items-center gap-1  ">
-                  <Button
-                    className="  rounded-full border  h-16 w-16"
-                    variant={"outline"}
-                    size={"icon"}
-                  >
-                    <ScrollText className="text-blue-600 w-8 h-8" />
-                  </Button>
+                {MAIN_DASHBOARD_ITEMS.map((item) => (
+                  <div className="flex flex-col items-center gap-1  ">
+                    <Button
+                      onClick={item.onClick}
+                      className="  rounded-full border  h-16 w-16"
+                      variant={"outline"}
+                      size={"icon"}
+                    >
+                      <item.icon className="text-blue-600 w-8 h-8" />
+                    </Button>
 
-                  <p className="text-slate-700 font-semibold text-sm">Orders</p>
-                </div>
-                <div className="flex flex-col items-center gap-1  ">
-                  <Button
-                    className="  rounded-full border  h-16 w-16"
-                    variant={"outline"}
-                    size={"icon"}
-                  >
-                    <Gift className="text-blue-600 w-8 h-8" />
-                  </Button>
-                  <p className="text-slate-700 font-semibold text-sm">
-                    Vouchers
-                  </p>
-                </div>
-                <div className="flex flex-col items-center gap-1  ">
-                  <Button
-                    className="  rounded-full border  h-16 w-16"
-                    variant={"outline"}
-                    size={"icon"}
-                  >
-                    <Gem className="text-blue-600 w-8 h-8" />
-                  </Button>
-                  <p className="text-slate-700 font-semibold text-sm">
-                    Rewards
-                  </p>
-                </div>
+                    <p className="text-slate-700 font-semibold text-sm">
+                      {item.title}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="flex flex-col gap-3 mt-3 w-full">
@@ -324,7 +345,148 @@ export const AccountDashboard = NiceModal.create(() => {
           </div>
         )}
 
-        
+        {currentTab === "Wallet" && (
+          <div>
+            <div className="bg-sky-100 w-full rounded-lg p-4 flex shadow items-center justify-between">
+              <div className="flex flex-col justify-between">
+                <p className="text-xs text-muted-foreground font-medium">
+                  You Have
+                </p>
+                <h5 className=" text-pink-700 text-lg font-semibold">
+                  {formatPrice(session?.user.wallet_balance ?? 0, {
+                    currency: SELECTED_COUNTRY_DETAILS.currency,
+                  })}
+                </h5>
+                <p className="text-xs text-muted-foreground font-medium">
+                  in Your Wallet
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <Button
+                  size={"icon"}
+                  variant={"outline"}
+                  className="rounded-full  "
+                >
+                  <ArrowUpCircle className="text-white fill-green-500 w-10 h-10" />
+                </Button>
+                <p className="text-blue-500 font-semibold text-sm">Top Up</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentTab === "Wishlist" && (
+          <div className="flex flex-col flex-1 overflow-x-hidden">
+            <h5 className="text-muted-foreground text-lg font-semibold mb-3">
+              Your Wishlisted Items
+            </h5>
+            <div className="grid gap-3">
+              {wishListItems.map((product, i) => (
+                <ProductRowListing product={product} index={i} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentTab === "Appointments" && (
+          <>
+            <Tabs
+              defaultValue="pending"
+              className="flex flex-col  items-center flex-1 justify-center"
+            >
+              <TabsList
+                className="grid w-full grid-cols-2"
+                defaultValue={"pending"}
+              >
+                <TabsTrigger value={"pending"}>PENDING</TabsTrigger>
+                <TabsTrigger value={"completed"}>COMPLETED</TabsTrigger>
+              </TabsList>
+              <TabsContent value="pending" className="h-full">
+                <div className=" flex flex-col mt-16 items-center">
+                  <Image
+                    src={"/images/cart/empty3.png"}
+                    height={200}
+                    width={200}
+                    alt="Add Products"
+                  />
+                  <div className="flex flex-col gap-2 py-7 items-center">
+                    <h5 className="text-lg font-semibold ">
+                      No Appoinments Found !
+                    </h5>
+
+                    <p className="text-sm">Start by creating a new one!</p>
+                  </div>
+
+                  <Link
+                    href={"/doctors"}
+                    className={cn(buttonVariants({ variant: "outline" }))}
+                  >
+                    Book Appointment
+                  </Link>
+                </div>
+              </TabsContent>
+              <TabsContent value="completed" className="h-full">
+                <div className=" flex flex-col mt-16 items-center">
+                  <Image
+                    src={"/images/cart/empty3.png"}
+                    height={200}
+                    width={200}
+                    alt="Add Products"
+                  />
+                  <div className="flex flex-col gap-2 py-7 items-center">
+                    <h5 className="text-lg font-semibold ">
+                      No Appoinments Found !
+                    </h5>
+
+                    <p className="text-sm">Start by creating a new one!</p>
+                  </div>
+
+                  <Link
+                    href={"/doctors"}
+                    className={cn(buttonVariants({ variant: "outline" }))}
+                  >
+                    Book Appointment
+                  </Link>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+
+        {currentTab === "Contact Us" && (
+          <div className="flex-1 flex flex-col  justify-start gap-5 p-3">
+            <div>
+              <Image
+                src={"/images/account/contact-us.png"}
+                height={600}
+                width={600}
+                alt="Contact Us"
+              />
+            </div>
+            <div className=" text-center">
+              <h5 className="text-2xl font-bold mb-4">Contact Us</h5>
+              <p className="text-sm text-center text-muted-foreground">
+                24/7 support at your finger tips for all your queries
+              </p>
+              <div className="flex gap-3 items-center px-10 mt-5">
+                <Button className="w-full rounded-full gap-2 drop-shadow  ">
+                  <PhoneIcon className="fill-white w-4 h-4" />
+                  <span>Call</span>
+                </Button>
+                <Button
+                  variant={"outline"}
+                  className="w-full rounded-full gap-2"
+                >
+                  <ChatBubbleIcon className=" w-4 h-4" />
+                  <span>Chat</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentTab === "Orders" && <OrdersListing />}
       </SheetContent>
     </Sheet>
   );
