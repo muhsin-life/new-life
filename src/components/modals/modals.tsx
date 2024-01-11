@@ -4,6 +4,7 @@ import { Cart } from "../Cart";
 import { AuthModal } from "./Auth";
 import { AccountDashboard } from "../AccountDashboard";
 import { AddressDeleteConfirmationModal } from "./AddressDialog";
+import { DetectLocation } from "./DetectLocation";
 
 NiceModal.register("language-modal", LanguageModal);
 NiceModal.register("cart", Cart);
@@ -13,6 +14,7 @@ NiceModal.register(
   "address-delete-confirm-modal",
   AddressDeleteConfirmationModal
 );
+NiceModal.register("detect-location", DetectLocation);
 
 // NiceModal.register("address-modal", AddressModal);
 // NiceModal.register("location-modal", LocationModal);

@@ -6,13 +6,13 @@ import {
   Slot,
 } from "./products";
 
-export interface OrderRes {
+export interface OrderListRes {
   success: boolean;
   message: boolean;
-  data: Order[];
+  data: OrderList[];
 }
 
-export interface Order {
+export interface OrderList {
   id: number;
   order_id: string;
   type: string;

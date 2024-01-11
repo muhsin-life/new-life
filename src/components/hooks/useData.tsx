@@ -18,7 +18,9 @@ import { Auth } from "@/types/cart";
 import { Maps } from "@/types/maps";
 import { Address } from "@/types/session";
 import { useSession } from "next-auth/react";
-import { OrderRes } from "@/types/orders";
+import { OrderListRes } from "@/types/orders-list";
+import { Order } from "@/types/order.";
+import { AppoinmentRes } from "@/types/appointment";
 
 export const useProducts = (type_key: string, slug: string) => {
   const { locale } = useRouter();
@@ -297,7 +299,7 @@ export const deleteAddress = (addressId: number) => {
   });
 };
 
-export const getOrderDetails = () => {
+export const getOrdersListDetails = () => {
   const { data: session } = useSession();
 
   return useQuery({
@@ -311,7 +313,40 @@ export const getOrderDetails = () => {
           },
         }
       );
-      return data as OrderRes;
+      return data as OrderListRes;
     },
+  });
+};
+
+export const getOrderDetails = (orderId: number) => {
+  const { data: session } = useSession();
+  return useQuery({
+    queryKey: ["get-order-details", orderId],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `https://${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/orders/${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.token}`,
+          },
+        }
+      );
+
+      return data as Order;
+    },
+  });
+};
+
+export const getAppointmentsData = () => {
+  return useQuery({
+    queryKey: ["get-appoinments-data"],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `https://${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/appointments/list`
+      );
+
+      return data as AppoinmentRes;
+    },
+    enabled: false,
   });
 };

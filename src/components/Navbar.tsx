@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { getSession } from "next-auth/react";
 import { useCart } from "./hooks/useCart";
 import { DEFAULT_ADDRESS } from "@/config";
+import { Modals } from "./modals/modals";
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -112,6 +113,9 @@ const AddressBar = () => {
           <Button
             className="bg-white hover:bg-white text-pink-800 h-6 text-xs rounded-[3px] gap-x-1 px-1.5 "
             size={"sm"}
+            onClick={() => {
+              Modals.show("detect-location");
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -35,6 +35,7 @@ export interface UserObject {
   membership: null;
   addresses: Address[];
   selected_address?: Address;
+  roles?: any[];
 }
 
 export interface Address {

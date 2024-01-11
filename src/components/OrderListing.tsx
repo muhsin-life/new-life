@@ -1,17 +1,20 @@
 import { cn } from "@/lib/utils";
 import { Icons } from "./Icons";
-import { getOrderDetails } from "./hooks/useData";
+import { getOrdersListDetails } from "./hooks/useData";
 import Image from "next/image";
 import { Button } from "./ui/button";
-
-const OrdersListing = () => {
-  const { data, isLoading } = getOrderDetails();
+import { OrderSkeleton } from "./ProductSkeleton";
+interface OrderListingProps {
+  openOrderDetails: (orderId: number) => void;
+}
+const OrdersListing = ({ openOrderDetails }: OrderListingProps) => {
+  const { data, isLoading } = getOrdersListDetails();
 
   return (
     <div className="flex flex-col flex-1   overflow-x-hidden">
       {!data && isLoading ? (
-        <div>
-          <p>Loading...</p>
+        <div className="flex flex-col gap-5">
+          {Array(4).fill(<OrderSkeleton />)}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -80,8 +83,12 @@ const OrdersListing = () => {
                     </div>
                   </div>
                 </div>
-              ))} 
-              <Button className="w-full rounded-t-none rounded-b-lg border-b-0 border-x-0" variant={"outline"}>
+              ))}
+              <Button
+                className="w-full rounded-t-none rounded-b-lg border-b-0 border-x-0"
+                variant={"outline"}
+                onClick={() => openOrderDetails(item.id)}
+              >
                 <p className="text-blue-500 font-semibold">VIEW DETAILS</p>
               </Button>
             </div>

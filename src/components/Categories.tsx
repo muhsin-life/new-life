@@ -1,31 +1,5 @@
-// import { ChevronDown } from "lucide-react";
-// import MaxWidthWrapper from "./MaxWidthWrapper";
-// import { CATGEORY_ITEMS } from "@/config";
-
-// export const Categories = () => {
-//   return (
-//     <div className="flex flex-1 flex-grow w-full bg-white h-12 border-b items-center ">
-//       <MaxWidthWrapper className="h-full">
-//         <div className="w-full flex  h-full py-1 gap-1.5">
-//           <button className="w-64 flex  hover:bg-blue-50 rounded-lg  items-center justify-between border-r border-slate-100 h-full px-3 group ">
-//             <h5 className="font-medium text-blue-500 ">SHOP BY CATEGORY</h5>
-//             <ChevronDown className="w-4 h-4" />
-//           </button>
-//           {CATGEORY_ITEMS.map((item) => (
-//             <button className="px-3 flex items-center gap-1 hover:bg-accent rounded-lg text-slate-700 ">
-//               <h5 className="font-medium">{item}</h5>
-//               <ChevronDown className="w-4 h-4" />
-//             </button>
-//           ))}
-//         </div>
-//       </MaxWidthWrapper>
-//     </div>
-//   );
-// };
-
 import * as React from "react";
 import Link from "next/link";
-
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -37,17 +11,16 @@ import {
 } from "@/components/ui/navigation-menu";
 import { useState } from "react";
 import MaxWidthWrapper from "./MaxWidthWrapper";
-import { useBrands, useCategories } from "./hooks/useData";
-import { Button, buttonVariants } from "./ui/button";
+import { getAppointmentsData, useBrands, useCategories } from "./hooks/useData";
+import { buttonVariants } from "./ui/button";
 import Image from "next/image";
 
-interface MainNavProps {
-  items?: MainNavItem[];
-}
 
 export function MainNav() {
   const { data, isLoading } = useCategories();
   const { data: brandsData, refetch } = useBrands();
+  const { data: appointments, refetch: refetchAppoinments } =
+    getAppointmentsData();
 
   const [catActiveData, setCatActiveData] = useState({
     categoryIndx: 0,
@@ -56,64 +29,27 @@ export function MainNav() {
   });
 
   const getBrandsData = () => {
-    refetch();
+    if (!brandsData) {
+      refetch();
+    }
+  };
+
+  const getAppointments = () => {
+    if (!appointments) {
+      refetchAppoinments();
+    }
   };
 
   return (
     <div className=" gap-6 flex h-12 bg-white border-b items-center">
       <MaxWidthWrapper>
-        {/* <Link href="/" className="hidden items-center space-x-2 lg:flex">
-        <Icons.logo className="h-6 w-6" aria-hidden="true" />
-        <span className="hidden font-bold lg:inline-block">
-          {siteConfig.name}
-        </span>
-        <span className="sr-only">Home</span>
-      </Link> */}
         <NavigationMenu>
           <NavigationMenuList>
-            {/* {items?.[0]?.items ? (
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="h-auto">
-                  {items[0].title}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                    <li className="row-span-3">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/"
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                        >
-                          <Icons.logo className="h-6 w-6" aria-hidden="true" />
-                          <div className="mb-2 mt-4 text-lg font-medium">
-                            {siteConfig.name}
-                          </div>
-                          <p className="text-sm leading-tight text-muted-foreground">
-                            {siteConfig.description}
-                          </p>
-                          <span className="sr-only">Home</span>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    {items[0].items.map((item: any) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      >
-                        {item.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            ) : null} */}
-
             <NavigationMenuItem>
               <NavigationMenuTrigger
                 className={cn(
                   "h-auto capitalize w-60 gap-2 ",
-                  buttonVariants({ variant: "outline" }),
+                  buttonVariants({ variant: "secondary" }),
                   "flex justify-between"
                 )}
               >
@@ -231,9 +167,13 @@ export function MainNav() {
                         Explore all the brands
                       </p>
                     </div>
-                    <Button className="text-sm h-8" size={"sm"}>
+
+                    <Link
+                      className={cn(buttonVariants({}), "text-sm h-8")}
+                      href={"/brands"}
+                    >
                       View All
-                    </Button>
+                    </Link>
                   </div>
 
                   <ul className="grid   gap-10 grid-cols-6 w-full rounded-lg">
@@ -267,6 +207,7 @@ export function MainNav() {
                   "h-auto capitalize  gap-2 ",
                   buttonVariants({ variant: "ghost" })
                 )}
+                onMouseOver={() => getAppointments()}
               >
                 HEALTH PACKAGES
               </NavigationMenuTrigger>
@@ -278,35 +219,36 @@ export function MainNav() {
                         Packages
                       </h2>
                       <p className=" text-sm text-muted-foreground ">
-                        Explore all the brands
+                        Explore all the Packages
                       </p>
                     </div>
-                    <Button className="text-sm h-8" size={"sm"}>
+                    <Link
+                      className={cn(buttonVariants({}), "text-sm h-8")}
+                      href={"/health_checkup"}
+                    >
                       View All
-                    </Button>
+                    </Link>
                   </div>
 
-                  <ul className="grid   gap-10 grid-cols-6 w-full rounded-lg">
-                    {brandsData?.data.brands.map((brand) => (
-                      <li>
-                        <Link href={`/brand/${brand.slug}`}>
-                          <div className="flex flex-col gap-2  justify-center ">
-                            <div className="bg-white flex items-center justify-center border border-muted rounded-xl shadow hover:shadow-md transition ">
-                              <Image
-                                src={brand.images.logo}
-                                alt={brand.name}
-                                width={100}
-                                height={100}
-                                className="rounded-xl"
-                              />
-                            </div>
-                            <p className="text-sm font-medium text-center">
-                              {brand.name}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
+                  <ul className="grid gap-7 grid-cols-3 w-full rounded-lg ">
+                    {appointments?.data.appointments.slice(0, 6).map(
+                      (appointment) =>
+                        appointment.images.banner && (
+                          <li>
+                            <Link href={`/brand/${appointment.slug}`}>
+                              <div className="bg-white flex items-center justify-center  rounded-lg shadow hover:shadow-md transition w-full aspect-[25/9]">
+                                <Image
+                                  src={appointment.images.banner}
+                                  alt={appointment.name}
+                                  width={1440}
+                                  height={1440}
+                                  className="rounded-lg h-full w-full object-cover object-left "
+                                />
+                              </div>
+                            </Link>
+                          </li>
+                        )
+                    )}
                   </ul>
                 </div>
               </NavigationMenuContent>

@@ -254,8 +254,8 @@ export interface Offers {
   exclude: boolean;
   type: string;
   value: number;
-  offer_amount: string;
-  deleted_at: null;
+  offer_amount?: string;
+  deleted_at?: null;
 }
 
 export interface Option {

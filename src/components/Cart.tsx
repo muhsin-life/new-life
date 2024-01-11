@@ -126,8 +126,8 @@ export const Cart = NiceModal.create(() => {
                   })
                 )}
               </ScrollArea>
-              <div>
-                <div className="border rounded-lg  p-3 flex flex-col gap-2">
+              <div className="">
+                <div className="mb-3 border rounded-lg  p-3 flex flex-col gap-2">
                   <div className="flex justify-between w-full items-center">
                     <div className="flex items-center gap-x-2">
                       <Tag className="w-5 h-5" />
@@ -163,33 +163,34 @@ export const Cart = NiceModal.create(() => {
                     </button>
                   </div>
                 </div>
-                <OrderSummary
-                  summaryProps={{
-                    props: [
-                      {
-                        label: "Order Total",
-                        price: formatPrice(cartSummary?.discount ?? 0),
-                      },
-                      {
-                        label: "Items Discount",
-                        classNames: "text-green-500",
-                        price: `- ${formatPrice(cartSummary?.total ?? 0)}`,
-                      },
-                      {
-                        label: "Estimated VAT %",
-                        price: formatPrice(cartSummary?.vat ?? 0),
-                      },
-                      {
-                        label: "Shipping",
-                        price:
-                          cartSummary?.shipping_fee !== 0
-                            ? formatPrice(cartSummary?.shipping_fee ?? 0)
-                            : "FREE",
-                      },
-                    ],
-                    total: cartSummary?.sub_total,
-                  }}
-                >
+                <div className="mt-4 grid gap-4">
+                  <OrderSummary
+                    summaryProps={{
+                      props: [
+                        {
+                          label: "Order Total",
+                          price: formatPrice(cartSummary?.discount ?? 0),
+                        },
+                        {
+                          label: "Items Discount",
+                          classNames: "text-green-500",
+                          price: `- ${formatPrice(cartSummary?.total ?? 0)}`,
+                        },
+                        {
+                          label: "Estimated VAT %",
+                          price: formatPrice(cartSummary?.vat ?? 0),
+                        },
+                        {
+                          label: "Shipping",
+                          price:
+                            cartSummary?.shipping_fee !== 0
+                              ? formatPrice(cartSummary?.shipping_fee ?? 0)
+                              : "FREE",
+                        },
+                      ],
+                      total: cartSummary?.sub_total,
+                    }}
+                  />
                   <Button
                     aria-label="View your cart"
                     className="w-full "
@@ -197,7 +198,7 @@ export const Cart = NiceModal.create(() => {
                   >
                     PROCEED TO CHECKOUT
                   </Button>
-                </OrderSummary>
+                </div>
               </div>
             </>
           ) : (

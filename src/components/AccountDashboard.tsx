@@ -9,6 +9,7 @@ import {
   Gem,
   Gift,
   Heart,
+  LogOutIcon,
   LucideIcon,
   MapPin,
   Package2,
@@ -16,6 +17,7 @@ import {
   PhoneIcon,
   PlusCircle,
   PlusIcon,
+  PowerIcon,
   ScrollText,
   Search,
   Trash2,
@@ -39,8 +41,9 @@ import ProductRowListing from "./product/ProductRowListing";
 import { useCart } from "./hooks/useCart";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import { ChatBubbleIcon } from "@radix-ui/react-icons";
+import { ChatBubbleIcon, ExitIcon } from "@radix-ui/react-icons";
 import { OrdersListing } from "./OrderListing";
+import { OrderDetails } from "./OrderDetails";
 
 export interface TabProps {
   title:
@@ -56,7 +59,9 @@ export interface TabProps {
     | "Orders"
     | "Vouchers"
     | "Rewards"
-    | "Address Form";
+    | "Address Form"
+    | "Log Out"
+    | "Order Details";
   icon: LucideIcon;
   onClick?: () => void;
 }
@@ -71,6 +76,12 @@ export const AccountDashboard = NiceModal.create(() => {
 
   const [tab, setTab] = useState<TabProps["title"][]>(["Account"]);
   const [selectedAddress, setSelectedAddress] = useState(currentAddress);
+  const [orderId, setOrderId] = useState<number | null>(null);
+
+  const openOrderDetails = (orderId: number) => {
+    setTab((tab) => [...tab, "Order Details"]);
+    setOrderId(orderId);
+  };
 
   const MAIN_DASHBOARD_ITEMS: TabProps[] = [
     {
@@ -148,6 +159,13 @@ export const AccountDashboard = NiceModal.create(() => {
         // signOut();
       },
     },
+    {
+      title: "Log Out",
+      icon: LogOutIcon,
+      onClick: () => {
+        signOut();
+      },
+    },
   ];
 
   const currentTab = tab[tab.length - 1];
@@ -156,8 +174,8 @@ export const AccountDashboard = NiceModal.create(() => {
 
   return (
     <Sheet open={modal.visible} onOpenChange={modal.hide}>
-      <SheetContent className="flex w-full flex-col  sm:max-w-lg bg-slate-50">
-        <SheetHeader className="space-y-2.5 pr-6 border-b pb-3">
+      <SheetContent className="flex w-full flex-col  sm:max-w-lg ">
+        <SheetHeader className="space-y-2.5 pr-6 border-b pb-3 ">
           <SheetTitle className="flex items-center gap-5 relative capitalize">
             {tab.length > 1 && (
               <Button
@@ -175,7 +193,7 @@ export const AccountDashboard = NiceModal.create(() => {
         </SheetHeader>
         {currentTab === "Account" && (
           <>
-            <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border     items-center w-full p-[16px] bg-cover">
+            <div className="!z-5 relative flex flex-col rounded-[20px] bg-slate-50 bg-clip-border border    items-center w-full p-[16px] bg-cover">
               <div
                 className="relative mt-1 flex h-32 w-full justify-center rounded-xl bg-cover"
                 style={{
@@ -200,7 +218,7 @@ export const AccountDashboard = NiceModal.create(() => {
                   <div className="flex flex-col items-center gap-1  ">
                     <Button
                       onClick={item.onClick}
-                      className="  rounded-full border  h-16 w-16"
+                      className="  rounded-full   h-16 w-16"
                       variant={"outline"}
                       size={"icon"}
                     >
@@ -214,11 +232,11 @@ export const AccountDashboard = NiceModal.create(() => {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-3 mt-3 w-full">
+            <div className="flex flex-col  mt-3 w-full border rounded-xl">
               {DASHBOARD_ITEMS.map((item) => (
                 <Button
                   variant={"outline"}
-                  className="border-none gap-3 justify-start items-center rounded-xl h-full p-4 hover:text-blue-500 group"
+                  className=" gap-3 justify-start items-center  border-b border-t-0 border-x-0 last:border-b-0 last:rounded-b-xl first:rounded-t-xl  rounded-none h-full p-3.5 hover:text-blue-500 group"
                   onClick={item.onClick}
                 >
                   {item.icon && (
@@ -486,7 +504,85 @@ export const AccountDashboard = NiceModal.create(() => {
           </div>
         )}
 
-        {currentTab === "Orders" && <OrdersListing />}
+        {currentTab === "Orders" && (
+          <OrdersListing openOrderDetails={openOrderDetails} />
+        )}
+
+        {currentTab === "Vouchers" && (
+          <>
+            <Tabs
+              defaultValue="pharmacy_vouchers"
+              className="flex flex-col  items-center flex-1 justify-center"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value={"pharmacy_vouchers"}>
+                  PHARMACY VOUCHERS
+                </TabsTrigger>
+                <TabsTrigger value={"clinic_vouchers"}>
+                  CLINIC VOUCHERS
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="pharmacy_vouchers" className="h-full">
+                <div className=" flex flex-col mt-16 items-center">
+                  <Image
+                    src={"/images/cart/empty3.png"}
+                    height={200}
+                    width={200}
+                    alt="Add Products"
+                  />
+                  <div className="flex flex-col gap-2 py-7 items-center">
+                    <h5 className="text-lg font-semibold ">
+                      No Pharmacy Vouchers Found !
+                    </h5>
+
+                    <p className="text-sm">Start shopping to get Vouchers</p>
+                  </div>
+
+                  <Link
+                    href={"/products"}
+                    className={cn(buttonVariants({ variant: "outline" }))}
+                  >
+                    Start Shopping
+                  </Link>
+                </div>
+              </TabsContent>
+              <TabsContent value="clinic_vouchers" className="h-full">
+                <div className=" flex flex-col mt-16 items-center">
+                  <Image
+                    src={"/images/cart/empty3.png"}
+                    height={200}
+                    width={200}
+                    alt="Add Products"
+                  />
+                  <div className="flex flex-col gap-2 py-7 items-center">
+                    <h5 className="text-lg font-semibold ">
+                      No Clinic Vouchers Found !
+                    </h5>
+
+                    <p className="text-sm">Book appointments to get Vouchers</p>
+                  </div>
+
+                  <Link
+                    href={"/doctors"}
+                    className={cn(buttonVariants({ variant: "outline" }))}
+                  >
+                    Book Appointment
+                  </Link>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+
+        {currentTab === "Order Details" && (
+          <>
+            {!orderId ? (
+              <span>Loading</span>
+            ) : (
+              <OrderDetails orderId={orderId} />
+            )}
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );

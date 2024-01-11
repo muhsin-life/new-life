@@ -19,12 +19,12 @@ export const OrderSummary = ({
   children,
 }: {
   summaryProps: props;
-  children: ReactNode;
+  children?: ReactNode;
 }) => {
   return (
-    <div className={cn("space-y-4 ")}>
+    <div className={cn("")}>
       <div />
-      <div className="space-y-2 text-sm font-medium border shadow p-3 border-muted rounded-lg">
+      <div className="space-y-2 bg-white text-sm font-medium border shadow p-3 border-muted rounded-lg">
         {summaryProps.props.map((summary) => (
           <div className={cn("flex", summary.classNames)}>
             <span className="flex-1">{summary.label}</span>
